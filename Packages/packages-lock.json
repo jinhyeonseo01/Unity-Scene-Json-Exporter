@@ -7,15 +7,6 @@
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
-    "com.browar.editor-toolbox": {
-      "version": "https://github.com/arimger/Unity-Editor-Toolbox.git#upm",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {
-        "com.unity.editorcoroutines": "1.0.0"
-      },
-      "hash": "c0e23661b9e3e48d935e2011637688eead7aa46f"
-    },
     "com.unity.ai.navigation": {
       "version": "2.0.7",
       "depth": 0,

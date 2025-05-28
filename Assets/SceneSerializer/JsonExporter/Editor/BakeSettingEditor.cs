@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEditor;
 using System.IO;
-using Unity.Android.Gradle;
 
 [CustomEditor(typeof(BakeSetting))]
 public class BakeSettingEditor : Editor

@@ -14,11 +14,6 @@
 This package can be installed using either **Direct Project Open** or **Unity Package Manager (UPM)**.  
 
   - Package Manager →  Install Package Manager from git URL
-    - **Step 1**  
-      ``` text
-       https://github.com/arimger/Unity-Editor-Toolbox.git#upm
-      ```
-    - **Step 2**  
       ``` text
       https://github.com/jinhyeonseo01/Unity-Scene-Json-Exporter.git?path=/Assets/SceneSerializer
       ```
