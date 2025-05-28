@@ -1,0 +1,27 @@
+
+{
+    "name" : "com.clrain.scenejsonserialize",
+    "version" : "3.0.1",
+    "displayName": "Unity Scene & Object To Json Exporter",
+    "description" : "Export tool for converting and saving Unity scenes in JSON format.",
+    "unity" : "6000.1",
+    "author" : {
+        "name" : "Clrain",
+        "email" : "jin_hyeon_seo_01@naver.com"
+    },
+    "keywords": [
+        "Shader Graph",
+        "URP",
+        "Json",
+        "Serialize",
+        "Tools"
+    ],
+    "dependencies" : {
+        "com.browar.editor-toolbox": "https://github.com/arimger/Unity-Editor-Toolbox.git#upm",
+        "com.unity.nuget.newtonsoft-json": "3.2.1",
+        "com.unity.render-pipelines.universal": "17.1.0",
+        "com.unity.formats.fbx": "5.1.1",
+        "com.unity.terrain-tools": "5.2.1"
+    }
+}
+

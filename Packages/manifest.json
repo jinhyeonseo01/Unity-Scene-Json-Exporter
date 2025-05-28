@@ -1,15 +1,15 @@
 {
   "dependencies": {
-    "com.unity.ai.navigation": "2.0.4",
-    "com.unity.collab-proxy": "2.5.2",
+    "com.unity.ai.navigation": "2.0.7",
+    "com.unity.collab-proxy": "2.8.2",
     "com.unity.feature.characters-animation": "1.0.0",
     "com.unity.feature.development": "1.0.2",
     "com.unity.multiplayer.center": "1.0.0",
     "com.unity.nuget.newtonsoft-json": "3.2.1",
-    "com.unity.render-pipelines.universal": "17.0.3",
+    "com.unity.render-pipelines.universal": "17.1.0",
     "com.unity.timeline": "1.8.7",
     "com.unity.ugui": "2.0.0",
-    "com.unity.visualscripting": "1.9.4",
+    "com.unity.visualscripting": "1.9.6",
     "com.unity.modules.accessibility": "1.0.0",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
@@ -41,6 +41,10 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
-    "com.unity.modules.xr": "1.0.0"
+    "com.unity.modules.xr": "1.0.0",
+
+    "com.browar.editor-toolbox": "https://github.com/arimger/Unity-Editor-Toolbox.git#upm",
+    "com.unity.formats.fbx": "5.1.1",
+    "com.unity.terrain-tools": "5.2.1"
   }
 }

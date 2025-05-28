@@ -1,15 +1,20 @@
 # Unity Scene & Object To Json Exporter  
 **Export tool for converting and saving Unity scenes in JSON format.**  
-**Latest tested version: 6000.0.25f URP.**  
+**Latest tested version: 6000.1.4f URP.**  
 **Supports GUID-based reference link serialization.**  
 <br>
 
-### Package Manager Dependencies
- - **Newtonsoft.Json** ( Add package by name  : "com.unity.nuget.newtonsoft-json" )  
- - **FBX Exporter** ( Add Unity Registry : "FBX Exporter" )  
+## Installation
 
-*(Dependency Installation Required)*  
-*(종속성 설치 필요.)*  
+This package can be installed using either **Direct Project Open** or **Unity Package Manager (UPM)**.  
+
+  - Package Manager →  Install Package Manager from git URL
+    ``` text
+    https://github.com/jinhyeonseo01/Unity-Scene-Json-Exporter.git?path=/Assets/SceneSerializer
+    ```
+  - Alternatively, Clone the repository to your local
+    *(Choose this option if direct customization is needed)*  
+
 
 ![2](./docs/2.png)  
 *(Direct12 Load Example)*
