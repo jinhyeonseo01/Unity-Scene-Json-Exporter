@@ -17,7 +17,6 @@
         "Tools"
     ],
     "dependencies" : {
-        "com.browar.editor-toolbox" : "*",
         "com.unity.nuget.newtonsoft-json": "3.2.1",
         "com.unity.render-pipelines.universal": "17.1.0",
         "com.unity.formats.fbx": "5.1.1",
