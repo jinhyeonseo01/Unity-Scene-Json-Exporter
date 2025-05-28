@@ -1,4 +1,9 @@
 # Unity Scene & Object To Json Exporter  
+[![Made with Unity](https://img.shields.io/badge/Made%20with-Unity-57b9d3.svg?style=flat&logo=unity)](https://unity3d.com)
+![Static Badge](https://img.shields.io/badge/pipeline-URP-5CB5CC?style=flat)
+![License](https://img.shields.io/github/license/jinhyeonseo01/Unity-Scene-Json-Exporter)
+![Version](https://img.shields.io/github/v/release/jinhyeonseo01/Unity-Scene-Json-Exporter)  
+
 **Export tool for converting and saving Unity scenes in JSON format.**  
 **Latest tested version: 6000.1.4f URP.**  
 **Supports GUID-based reference link serialization.**  
