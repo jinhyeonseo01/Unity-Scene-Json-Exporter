@@ -9,18 +9,6 @@
 **Supports GUID-based reference link serialization.**  
 <br>
 
-## Installation
-
-This package can be installed using either **Direct Project Open** or **Unity Package Manager (UPM)**.  
-
-  - Package Manager →  Install Package Manager from git URL
-      ``` text
-      https://github.com/jinhyeonseo01/Unity-Scene-Json-Exporter.git?path=/Assets/SceneSerializer
-      ```
-  - Alternatively, Clone the repository to your local
-    *(Choose this option if direct customization is needed)*  
-
-
 ![2](./docs/2.png)  
 *(Direct12 Load Example)*
 
