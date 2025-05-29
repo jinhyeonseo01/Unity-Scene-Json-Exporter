@@ -912,7 +912,7 @@ public class AnimationListProperty : BaseBakeComponent
             var filePath = AssetDatabase.GetAssetPath(clip);
             string fileName = Path.GetFileNameWithoutExtension(filePath);
             string finalName = fileName + "|" + AnimationList.ExtractTakeName(clip);
-            SharedAnimationFBX.models.Add(filePath);
+            BakeFBXModel.modelPathList.Add(filePath);
             json2.Add(key, finalName);
         }
 

@@ -1,27 +1,39 @@
-# Unity Scene & Object To Json Exporter  
+# Unity Scene & Object to JSON Exporter  
 [![Made with Unity](https://img.shields.io/badge/Made%20with-Unity-57b9d3.svg?style=flat&logo=unity)](https://unity3d.com)
 ![Static Badge](https://img.shields.io/badge/pipeline-URP-5CB5CC?style=flat)
 ![License](https://img.shields.io/github/license/jinhyeonseo01/Unity-Scene-Json-Exporter)
 ![Version](https://img.shields.io/github/v/release/jinhyeonseo01/Unity-Scene-Json-Exporter)  
 
-**Export tool for converting and saving Unity scenes in JSON format.**  
-**Latest tested version: 6000.1.4f URP.**  
-**Supports GUID-based reference link serialization.**  
+**An export tool for converting and saving Unity scenes in JSON format.**  
+**Latest tested version: 6000.1.4f (URP).**  
+**Supports serialization of GUID-based reference links.**  
 <br>
 
-![2](./docs/2.png)  
+* * *  
+
+![Direct12 Load Example](./docs/2.png)  
 *(Direct12 Load Example)*
 
-**GUID Based Reference Link Serialize**
-### Two-Step Processing
-1. **Preprocessing**: Assign GUIDs and compile a list of objects
-2. **Baking**: Serialize to JSON and update GUID references
+## GUID-Based Reference Link Serialization
 
-#### Note: 
- - GameObjects with a # prefix in their name are excluded from baking.
- - Before baking, you must update the path at least once using the Bake Setting script placed in the Scene. For instructions, refer to the Guide.
+### Two-Step Process
 
-## Format Structure
+1. **Preprocessing**  
+   Assign GUIDs and compile a list of objects.  
+2. **Baking**  
+   Serialize to JSON and update GUID references.
+
+> **Note:**  
+> - Any GameObject whose name starts with `#` is excluded from baking.  
+> - Before baking, you must update the path at least once using the **Bake Setting** script in the scene. For detailed instructions, see the Guide.
+
+
+
+
+
+
+
+## Format Structure (Examples)
 ``` json
 // Base Structure
 {
@@ -738,3 +750,14 @@ By clicking the button, it adjusts the *UnitScaleFactor* of all *.fbx* files in 
 ```
 
 </details>
+
+
+
+
+## Third-Party Attributions
+
+This project includes code from the following open-source project:
+
+- [Unity-Editor-Toolbox](https://github.com/arimger/Unity-Editor-Toolbox)  
+  Copyright (c) arimger  
+  Licensed under the MIT License

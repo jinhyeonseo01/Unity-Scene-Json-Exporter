@@ -10,6 +10,7 @@ using UnityEditor;
 using System.IO;
 using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
+using UnityEngine.UIElements.Experimental;
 
 [InitializeOnLoad]
 public class BakeUnity : MonoBehaviour
@@ -36,10 +37,10 @@ public class BakeUnity : MonoBehaviour
     public static HashSet<string> filePathSet;
 
     //[Button]
-    public static void Baking()
+    public static void SceneBake()
     {
-        InitBake();
         JObject totalJson;
+        InitBake();
         InitJson(out totalJson);
 
         var childsAll = FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.InstanceID);
@@ -60,71 +61,7 @@ public class BakeUnity : MonoBehaviour
         if (refList_GameObject.Count == 0)
             return;
 
-        SharedAnimationFBX.models.Clear();
-
-        for (int i = 0; i < refList_GameObject.Count; i++)
-            PrevProcessingGameObject(refList_GameObject[i]);
-        for (int i = 0; i < refList_Component.Count; i++)
-            PrevProcessingComponent(refList_Component[i]);
-        for (int i = 0; i < refList_Material.Count; i++)
-            PrevProcessingMaterial(refList_Material[i]);
-
-        Debug.Log($"total GameObject : {refList_GameObject.Count}");
-        Debug.Log($"total Component : {refList_Component.Count}");
-        Debug.Log($"total Material : {refList_Material.Count}");
-
-        for (int i = 0; i < refList_GameObject.Count; i++)
-            BakeGameObject(totalJson, refList_GameObject[i]);
-        for (int i = 0; i < refList_Component.Count; i++)
-            BakeComponent(totalJson, refList_Component[i]);
-        for (int i = 0; i < refList_Material.Count; i++)
-            BakeMaterial(totalJson, refList_Material[i]);
-        for (int i = 0; i < refList_GameObject.Count; i++)
-            BakeObject(totalJson, refList_GameObject[i]);
-
-        foreach (var gameObject in childsAll)
-            foreach (var sharedAnim in gameObject.GetComponentsInChildren<SharedAnimationFBX>(true))
-                sharedAnim.BakeBone();
-
-        totalJson.Add("AnimationBoneMapping", JObject.FromObject(SharedAnimationFBX.allBoneMappings));
-
-        List<string> animationList = new List<string>();
-        foreach (var gameObject in childsAll)
-        {
-            foreach (var sharedAnim in gameObject.GetComponentsInChildren<SharedAnimationFBX>(true))
-            {
-                var list = sharedAnim.sharedModelsData.models;
-                foreach (var obj in list)
-                {
-                    if (!obj.IsUnityNull() && obj != null)
-                    {
-                        var path = AssetDatabase.GetAssetPath(obj).Trim();
-                        if (!string.IsNullOrEmpty(path))
-                        {
-                            BakeUnity.filePathSet.Add(path);
-                            path = path.Replace("Assets/", BakeUnity.definePath_Resources);
-
-                            var fileName = path.Split("/").Last();
-                            var name = string.Join(".", fileName.Split(".")[0..^1]);
-                            if (!animationList.Contains(path))
-                                animationList.Add(path);
-                            //data["path"] = path;
-                        }
-                    }
-                }
-
-                foreach (var path2 in SharedAnimationFBX.models)
-                {
-                    BakeUnity.filePathSet.Add(path2);
-                    var path = path2.Replace("Assets/", BakeUnity.definePath_Resources);
-                    var fileName = path.Split("/").Last();
-                    var name = string.Join(".", fileName.Split(".")[0..^1]);
-                    if (!animationList.Contains(path))
-                        animationList.Add(path);
-                }
-            }
-        }
-        totalJson.Add("AnimationModels", JArray.FromObject(animationList));
+        Baking(ref totalJson);
 
 
         finalJson = totalJson.ToSafeString();
@@ -136,29 +73,10 @@ public class BakeUnity : MonoBehaviour
     }
 
     //[Button]
-    private static void Save(string data, string name)
+    public static void SelectBake()
     {
-        var sceneName = name;
-        Debug.Log($"Baking Name : {sceneName}");
-
-        string dirPath = exportPath;// Path.GetDirectoryName(exportPath);
-        string filePath = $"{dirPath}/{sceneName}.json";
-        // StreamWriter를 사용하여 문자열을 파일에 저장
-        if (!Directory.Exists(dirPath))
-            Directory.CreateDirectory(dirPath);
-        using (StreamWriter writer = new StreamWriter(filePath)) {
-            writer.WriteLine(finalJson);
-        }
-        AssetDatabase.Refresh();
-
-        Console.WriteLine("파일에 저장되었습니다.");
-    }
-
-    //[Button]
-    public static void SelectBaking()
-    {
-        InitBake();
         JObject totalJson;
+        InitBake();
         InitJson(out totalJson);
 
 
@@ -190,7 +108,7 @@ public class BakeUnity : MonoBehaviour
         if (refList_GameObject.Count == 0)
             return;
 
-        SharedAnimationFBX.models.Clear();
+        BakeFBXModel.modelPathList.Clear();
 
         for (int i = 0; i < refList_GameObject.Count; i++)
             PrevProcessingGameObject(refList_GameObject[i]);
@@ -213,47 +131,8 @@ public class BakeUnity : MonoBehaviour
             BakeObject(totalJson, refList_GameObject[i]);
 
         foreach (var gameObject in childsAll)
-            foreach (var sharedAnim in gameObject.GetComponentsInChildren<SharedAnimationFBX>(true))
+            foreach (var sharedAnim in gameObject.GetComponentsInChildren<BakeFBXModel>(true))
                 sharedAnim.BakeBone();
-
-        totalJson.Add("AnimationBoneMapping", JObject.FromObject(SharedAnimationFBX.allBoneMappings));
-
-        List<string> animationList = new List<string>();
-        foreach (var gameObject in childsAll)
-        {
-            foreach (var sharedAnim in gameObject.GetComponentsInChildren<SharedAnimationFBX>(true))
-            {
-                var list = sharedAnim.sharedModelsData.models;
-                foreach (var obj in list)
-                {
-                    if (!obj.IsUnityNull() && obj != null)
-                    {
-                        var path = AssetDatabase.GetAssetPath(obj).Trim();
-                        if (!string.IsNullOrEmpty(path))
-                        {
-                            BakeUnity.filePathSet.Add(path);
-                            path = path.Replace("Assets/", BakeUnity.definePath_Resources);
-
-                            var fileName = path.Split("/").Last();
-                            var name = string.Join(".", fileName.Split(".")[0..^1]);
-                            if (!animationList.Contains(path))
-                                animationList.Add(path);
-                            //data["path"] = path;
-                        }
-                    }
-                }
-                foreach (var path2 in SharedAnimationFBX.models)
-                {
-                    BakeUnity.filePathSet.Add(path2);
-                    var path = path2.Replace("Assets/", BakeUnity.definePath_Resources);
-                    var fileName = path.Split("/").Last();
-                    var name = string.Join(".", fileName.Split(".")[0..^1]);
-                    if (!animationList.Contains(path))
-                        animationList.Add(path);
-                }
-            }
-        }
-        totalJson.Add("AnimationModels", JArray.FromObject(animationList));
 
 
         finalJson = totalJson.ToSafeString();
@@ -347,6 +226,58 @@ public class BakeUnity : MonoBehaviour
         (refJson as JObject)["Components"] ??= new JArray();
         //obj["references"] ??= new JArray();
     }
+
+    public static void Baking(ref JObject totalJson)
+    {
+        for (int i = 0; i < refList_GameObject.Count; i++)
+            PrevProcessingGameObject(refList_GameObject[i]);
+        for (int i = 0; i < refList_Component.Count; i++)
+            PrevProcessingComponent(refList_Component[i]);
+        for (int i = 0; i < refList_Material.Count; i++)
+            PrevProcessingMaterial(refList_Material[i]);
+        for (int i = 0; i < refList_Material.Count; i++)
+            PrevProcessingMaterial(refList_Material[i]);
+
+        PrevProcessingModel();
+
+        Debug.Log($"total GameObject : {refList_GameObject.Count}");
+        Debug.Log($"total Component : {refList_Component.Count}");
+        Debug.Log($"total Material : {refList_Material.Count}");
+
+        for (int i = 0; i < refList_GameObject.Count; i++)
+            BakeGameObject(totalJson, refList_GameObject[i]);
+        for (int i = 0; i < refList_Component.Count; i++)
+            BakeComponent(totalJson, refList_Component[i]);
+        for (int i = 0; i < refList_Material.Count; i++)
+            BakeMaterial(totalJson, refList_Material[i]);
+        //for (int i = 0; i < refList_GameObject.Count; i++)
+        //BakeObject(totalJson, refList_GameObject[i]);
+
+        BakeModel(totalJson, refList_GameObject);
+    }
+
+    //[Button]
+    private static void Save(string data, string name)
+    {
+        var sceneName = name;
+        Debug.Log($"Baking Name : {sceneName}");
+
+        string dirPath = exportPath;// Path.GetDirectoryName(exportPath);
+        string filePath = $"{dirPath}/{sceneName}.json";
+        // StreamWriter를 사용하여 문자열을 파일에 저장
+        if (!Directory.Exists(dirPath))
+            Directory.CreateDirectory(dirPath);
+        using (StreamWriter writer = new StreamWriter(filePath))
+        {
+            writer.WriteLine(finalJson);
+        }
+        AssetDatabase.Refresh();
+
+        Console.WriteLine("파일에 저장되었습니다.");
+    }
+
+
+
     public static void PrevProcessingPrefab(GameObject prefab)
     {
         foreach (var trans in prefab.GetComponentsInChildren<Transform>()) {
@@ -391,6 +322,12 @@ public class BakeUnity : MonoBehaviour
     public static void PrevProcessingMaterial(Material material)
     {
         TrySetGuid(material);
+    }
+
+    public static void PrevProcessingModel()
+    {
+        BakeFBXModel.modelPathList.Clear();
+        BakeFBXModel.allBoneMappings.Clear();
     }
 
     public static void BakeGameObject(JObject prevJson, GameObject gameObject)
@@ -458,6 +395,55 @@ public class BakeUnity : MonoBehaviour
         //JObject objJson = new JObject();
         //Debug.Log(prevJson.ToString());
     }
+
+    public static void BakeModel(JObject prevJson, List<GameObject> objectList)
+    {
+
+        List<string> animationList = new List<string>();
+        foreach (var gameObject in objectList)
+        {
+            foreach (var sharedAnim in gameObject.GetComponentsInChildren<BakeFBXModel>(true))
+                sharedAnim.BakeBone();
+
+            foreach (var sharedAnim in gameObject.GetComponentsInChildren<BakeFBXModel>(true))
+            {
+                foreach (var sharedModelsData in sharedAnim.modelsTableList)
+                {
+                    var list = sharedModelsData.models;
+                    foreach (var obj in list)
+                    {
+                        if (!obj.IsUnityNull() && obj != null)
+                        {
+                            var path = AssetDatabase.GetAssetPath(obj).Trim();
+                            if (!string.IsNullOrEmpty(path))
+                            {
+                                BakeUnity.filePathSet.Add(path);
+                                path = path.Replace("Assets/", BakeUnity.definePath_Resources);
+
+                                var fileName = path.Split("/").Last();
+                                var name = string.Join(".", fileName.Split(".")[0..^1]);
+                                if (!animationList.Contains(path))
+                                    animationList.Add(path);
+                            }
+                        }
+                    }
+
+                    foreach (var path2 in BakeFBXModel.modelPathList)
+                    {
+                        BakeUnity.filePathSet.Add(path2);
+                        var path = path2.Replace("Assets/", BakeUnity.definePath_Resources);
+                        var fileName = path.Split("/").Last();
+                        var name = string.Join(".", fileName.Split(".")[0..^1]);
+                        if (!animationList.Contains(path))
+                            animationList.Add(path);
+                    }
+                }
+            }
+        }
+        prevJson.Add("Models", JArray.FromObject(animationList));
+        prevJson.Add("AnimationBoneMappingTable", JObject.FromObject(BakeFBXModel.allBoneMappings));
+    }
+
     public static bool TryGetGuid<T>(T obj, out string guid) where T : class
     {
         guid = "null";
