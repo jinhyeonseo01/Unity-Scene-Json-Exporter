@@ -173,7 +173,7 @@ public class BakeUnity : MonoBehaviour
         resourceFilePathTable ??= new HashSet<string>(8192);
         resourceFilePathTable.Clear();
 
-        global::BakeObject.Init();
+        BakeObject.Init();
 
         var setting = FindAnyObjectByType<BakeSetting>();
         if (setting != null)
@@ -265,6 +265,8 @@ public class BakeUnity : MonoBehaviour
         if (!refList_GameObject.Contains(gameObject))
             refList_GameObject.Add(gameObject);
 
+        BakeGuid.SetGuid(gameObject);
+
         refList_Component.AddRange(gameObject.GetComponents<Component>()
             .Where(e => e != null)
             .ToList());
@@ -274,7 +276,7 @@ public class BakeUnity : MonoBehaviour
     {
         //gameObjectToBakeTable.TryGetValue(component.gameObject, out var bakingInfo);
         BakeGuid.SetGuid(component);
-        var property = global::BakeObject.CreateProperty(component);
+        var property = BakeObject.CreateProperty(component);
         if (property != null)
             property.Preprocess();
 
@@ -282,7 +284,7 @@ public class BakeUnity : MonoBehaviour
     public static void PrevProcessingMaterial(Material material)
     {
         BakeGuid.SetGuid(material);
-        global::BakeObject.CreateProperty(material);
+        BakeObject.CreateProperty(material);
     }
 
     public static void BakeGameObject(JObject prevJson, GameObject gameObject)

@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.XR;
 
 [Serializable]
 [BakeTargetType(typeof(Terrain))]
@@ -38,13 +39,11 @@ public class TerrainProperty : BakeObject
         for (int i = 0; i < obj.terrainData.alphamapTextureCount; i++)
         {
             var texture = obj.terrainData.GetAlphamapTexture(i);
-            byte[] bytes = texture.EncodeToPNG();
 
-            var pathInfo = BakeExtensions.PathConvert($"Assets/Models/Terrains/Textures/{nameKey}_SplatTexture_{i}.png");
-            
-            if (!Directory.Exists(pathInfo.unityFilePath))
+            var pathInfo = BakeExtensions.PathConvert($"Assets/Terrains/Textures/{nameKey}_SplatTexture_{i}.png");
+            if (!Directory.Exists(pathInfo.unityFolderPath))
                 Directory.CreateDirectory(pathInfo.unityFolderPath);
-            File.WriteAllBytes(pathInfo.unityFilePath, bytes);
+            File.WriteAllBytes(pathInfo.unityFilePath, texture.EncodeToPNG());
             BakeUnity.AddResourcePath(pathInfo.unityFilePath);
 
             layerBlendArray.Add(pathInfo.convertFullFilePath);
@@ -76,13 +75,12 @@ public class TerrainProperty : BakeObject
         string pngPath;
 
         {
-            var folderPath = Path.Combine("Assets/", "Models/Terrains/Heights/");
-            string fileName = $"{nameKey}_Height.raw";
-            rawPath = Path.Combine(folderPath, fileName);
-            if (!Directory.Exists(folderPath))
-                Directory.CreateDirectory(folderPath);
-            File.WriteAllBytes(rawPath, rawData);
-            BakeUnity.resourceFilePathTable.Add(rawPath);
+            var pathInfo = BakeExtensions.PathConvert($"Assets/Terrains/Heights/{nameKey}_Height.raw");
+            if (!Directory.Exists(pathInfo.unityFolderPath))
+                Directory.CreateDirectory(pathInfo.unityFolderPath);
+            File.WriteAllBytes(pathInfo.unityFilePath, rawData);
+            BakeUnity.AddResourcePath(pathInfo.unityFilePath);
+            rawPath = pathInfo.convertFullFilePath;
         }
         {
             Texture2D texture = new Texture2D(baseResolution, baseResolution, TextureFormat.R16, false);//heights
@@ -93,13 +91,13 @@ public class TerrainProperty : BakeObject
                     texture.SetPixel(x, y, Color.red * heights[y, x]);
                 }
             texture.Apply();
-            var folderPath = Path.Combine("Assets/", "Models/Terrains/Heights/");
-            string fileName = $"{nameKey}_Height.png";
-            pngPath = Path.Combine(folderPath, fileName);
-            if (!Directory.Exists(folderPath))
-                Directory.CreateDirectory(folderPath);
-            File.WriteAllBytes(pngPath, texture.EncodeToPNG());
-            BakeUnity.resourceFilePathTable.Add(pngPath);
+
+            var pathInfo = BakeExtensions.PathConvert($"Assets/Terrains/Heights/{nameKey}_Height.png");
+            if (!Directory.Exists(pathInfo.unityFolderPath))
+                Directory.CreateDirectory(pathInfo.unityFolderPath);
+            File.WriteAllBytes(pathInfo.unityFilePath, texture.EncodeToPNG());
+            BakeUnity.AddResourcePath(pathInfo.unityFilePath);
+            pngPath = pathInfo.convertFullFilePath;
         }
 
         JArray prefabArray = new JArray();
@@ -154,8 +152,8 @@ public class TerrainProperty : BakeObject
         json.Add("heightmapResolution", resolution);
         json.Add("alphamapResolution", obj.terrainData.alphamapResolution);
         json.Add("alphamapTextureCount", obj.terrainData.alphamapTextureCount);
-        json.Add("rawPath", BakeExtensions.PathConvert(rawPath).convertFullFilePath);
-        json.Add("pngPath", BakeExtensions.PathConvert(pngPath).convertFullFilePath);
+        json.Add("rawPath", rawPath);
+        json.Add("pngPath", pngPath);
         json.Add("layerBlendTextures", layerBlendArray);
         json.Add("layers", layerArray);
         json.Add("instanceCount", obj.terrainData.treeInstanceCount);

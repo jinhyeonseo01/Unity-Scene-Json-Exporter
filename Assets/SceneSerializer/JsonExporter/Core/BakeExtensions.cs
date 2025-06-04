@@ -26,30 +26,35 @@ public class BakeExtensions
 
         if (string.IsNullOrEmpty(assetPath))
             return new BakePathInfo();
+        bool configFile = false;
         if (assetPath.Contains("unity default resources") || assetPath.Contains("unity_builtin_extra"))
         {
+            configFile = true;
             if (asset is Mesh mesh)
-                assetPath = BakeUnity.definePath_ConfigResources + mesh.name + ".fbx";
+                assetPath = "Assets/" + mesh.name + ".fbx";
             if (asset is Texture2D texture2d)
-                assetPath = BakeUnity.definePath_ConfigResources + texture2d.name + ".png";
+                assetPath = "Assets/" + texture2d.name + ".png";
             if (asset is Font font)
-                assetPath = BakeUnity.definePath_ConfigResources + font.name + ".tff";
+                assetPath = "Assets/" + font.name + ".tff";
         }
         else
         {
             BakeUnity.AddResourcePath(assetPath);
         }
 
-        BakePathInfo pathInfo = PathConvert(assetPath);
+        BakePathInfo pathInfo = PathConvert(assetPath, configFile);
         return pathInfo;
         
     }
-    public static BakePathInfo PathConvert(string path)
+    public static BakePathInfo PathConvert(string path, bool configFile = false)
     {
         BakePathInfo info;
 
         info.unityFilePath = path.Trim();
-        info.convertFullFilePath = info.unityFilePath.Replace("Assets/", BakeUnity.definePath_Resources);
+        if(configFile)
+            info.convertFullFilePath = info.unityFilePath.Replace("Assets/", BakeUnity.definePath_ConfigResources);
+        else
+            info.convertFullFilePath = info.unityFilePath.Replace("Assets/", BakeUnity.definePath_Resources);
 
         int lastSlash = info.convertFullFilePath.LastIndexOf('/');
         if (lastSlash >= 0)
@@ -165,7 +170,7 @@ public class BakeExtensions
             JObject data = new JObject();
             var pathInfo = GetPathInfoFromAsset(mesh);
 
-            data["path"] = pathInfo.unityFilePath;
+            data["path"] = pathInfo.convertFullFilePath;
             data["fileName"] = pathInfo.fileFullName;
             data["modelName"] = pathInfo.fileName;
             data["meshName"] = mesh.name;

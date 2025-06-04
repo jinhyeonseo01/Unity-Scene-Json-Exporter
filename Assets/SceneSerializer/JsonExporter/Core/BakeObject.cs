@@ -102,7 +102,6 @@ public class BakeObject : IBakeProcess
     {
         string typeName = element.GetType().Name;
         string guid = BakeGuid.GetGuid(element);
-
         if (bakeClassObjectNameTable.TryGetValue(typeName, out var value) && (!bakeClassObjectGuidTable.ContainsKey(guid)))
         {
             var bakeData = value.MemberwiseClone() as BakeObject;
