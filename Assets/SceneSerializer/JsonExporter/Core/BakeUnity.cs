@@ -18,15 +18,11 @@ public class BakeUnity : MonoBehaviour
     //[OdinSerialize]
     public static string definePath_Resources = "Assets/";
     public static string definePath_ConfigResources = "Assets/";
-    public static Dictionary<string, string> nameToPathTable = new Dictionary<string, string>(4092);
-    public static Dictionary<object, string> objectToGuidTable = new Dictionary<object, string>(4092);
 
     public static List<GameObject> refList_GameObject;
     public static List<Material> refList_Material;
     public static List<Component> refList_Component;
 
-    public static Dictionary<GameObject, BakeGameObject> gameObjectToBakeTable;
-    public static Dictionary<Component, BaseBakeComponent> componentToBakeTable;
 
     [NonSerialized, HideInInspector]
     protected static string finalJson;
@@ -34,7 +30,8 @@ public class BakeUnity : MonoBehaviour
     public static string exportPath = "./Assets/Exports/";
     public static string exportResourcePath = "./Assets/Exports/";
 
-    public static HashSet<string> filePathSet;
+
+    public static HashSet<string> resourceFilePathTable;
 
     //[Button]
     public static void SceneBake()
@@ -60,6 +57,7 @@ public class BakeUnity : MonoBehaviour
         }
         if (refList_GameObject.Count == 0)
             return;
+
 
         Baking(ref totalJson);
 
@@ -108,31 +106,7 @@ public class BakeUnity : MonoBehaviour
         if (refList_GameObject.Count == 0)
             return;
 
-        BakeFBXModel.modelPathList.Clear();
-
-        for (int i = 0; i < refList_GameObject.Count; i++)
-            PrevProcessingGameObject(refList_GameObject[i]);
-        for (int i = 0; i < refList_Component.Count; i++)
-            PrevProcessingComponent(refList_Component[i]);
-        for (int i = 0; i < refList_Material.Count; i++)
-            PrevProcessingMaterial(refList_Material[i]);
-
-        Debug.Log($"total GameObject : {refList_GameObject.Count}");
-        Debug.Log($"total Component : {refList_Component.Count}");
-        Debug.Log($"total Material : {refList_Material.Count}");
-
-        for (int i = 0; i < refList_GameObject.Count; i++)
-            BakeGameObject(totalJson, refList_GameObject[i]);
-        for (int i = 0; i < refList_Component.Count; i++)
-            BakeComponent(totalJson, refList_Component[i]);
-        for (int i = 0; i < refList_Material.Count; i++)
-            BakeMaterial(totalJson, refList_Material[i]);
-        for (int i = 0; i < refList_GameObject.Count; i++)
-            BakeObject(totalJson, refList_GameObject[i]);
-
-        foreach (var gameObject in childsAll)
-            foreach (var sharedAnim in gameObject.GetComponentsInChildren<BakeFBXModel>(true))
-                sharedAnim.BakeBone();
+        Baking(ref totalJson);
 
 
         finalJson = totalJson.ToSafeString();
@@ -144,7 +118,7 @@ public class BakeUnity : MonoBehaviour
     }
     public static void CopyResources()
     {
-        var filePathList = filePathSet.Where(e => !string.IsNullOrEmpty(e)).ToList();
+        var filePathList = resourceFilePathTable.Where(e => !string.IsNullOrEmpty(e)).ToList();
 
         foreach (var path in filePathList)
         {
@@ -179,10 +153,11 @@ public class BakeUnity : MonoBehaviour
                 Debug.LogWarning($"파일을 찾을 수 없음: {path}");
             }
         }
-        
+
         AssetDatabase.Refresh();
         Debug.Log($"파일 복사 완료 : Count - {filePathList.Count}");
     }
+
     public static void InitBake()
     {
         refList_GameObject ??= new List<GameObject>(8192);
@@ -194,23 +169,14 @@ public class BakeUnity : MonoBehaviour
         refList_Component ??= new List<Component>(8192);
         refList_Component.Clear();
 
-        nameToPathTable = new Dictionary<string, string>(8192);
-        nameToPathTable.Clear();
 
-        objectToGuidTable = new Dictionary<object, string>(8192);
-        objectToGuidTable.Clear();
+        resourceFilePathTable ??= new HashSet<string>(8192);
+        resourceFilePathTable.Clear();
 
-        gameObjectToBakeTable ??= new Dictionary<GameObject, BakeGameObject>(8192);
-        gameObjectToBakeTable.Clear();
-
-        componentToBakeTable ??= new Dictionary<Component, BaseBakeComponent>(8192);
-        componentToBakeTable.Clear();
-
-        filePathSet ??= new HashSet<string>(8192);
-        filePathSet.Clear();
+        global::BakeObject.Init();
 
         var setting = FindAnyObjectByType<BakeSetting>();
-        if(setting != null)
+        if (setting != null)
             setting.PathUpdate();
     }
     public static void InitJson(out JObject json)
@@ -236,7 +202,6 @@ public class BakeUnity : MonoBehaviour
         for (int i = 0; i < refList_Material.Count; i++)
             PrevProcessingMaterial(refList_Material[i]);
         for (int i = 0; i < refList_Material.Count; i++)
-            PrevProcessingMaterial(refList_Material[i]);
 
         PrevProcessingModel();
 
@@ -277,124 +242,101 @@ public class BakeUnity : MonoBehaviour
     }
 
 
+    public static void AddResourcePath(string path)
+    {
+        resourceFilePathTable.Add(path);
+    }
+
+    public static void PrevProcessingModel()
+    {
+        BakeFBXModel.modelPathList.Clear();
+    }
 
     public static void PrevProcessingPrefab(GameObject prefab)
     {
-        foreach (var trans in prefab.GetComponentsInChildren<Transform>()) {
+        foreach (var trans in prefab.GetComponentsInChildren<Transform>())
+        {
             var gameObject = trans.gameObject;
             PrevProcessingGameObject(gameObject);
         }
     }
     public static void PrevProcessingGameObject(GameObject gameObject)
     {
-        if(!refList_GameObject.Contains(gameObject))
+        if (!refList_GameObject.Contains(gameObject))
             refList_GameObject.Add(gameObject);
 
-        if (!gameObjectToBakeTable.TryGetValue(gameObject, out var bakingInfo))
-        {
-            bakingInfo = new BakeGameObject(gameObject);
-            gameObjectToBakeTable.Add(gameObject, bakingInfo);
-        }
-
-        SetGuidAndUpdate(gameObject, bakingInfo.guid);
-
         refList_Component.AddRange(gameObject.GetComponents<Component>()
-            .Where(e => !e.IsUnityNull())
+            .Where(e => e != null)
             .ToList());
 
     }
     public static void PrevProcessingComponent(Component component)
     {
         //gameObjectToBakeTable.TryGetValue(component.gameObject, out var bakingInfo);
-        if (!componentToBakeTable.TryGetValue(component, out var property))
-        {
-            if ((property = BaseBakeComponent.CreateProperty(component)) != null)
-                componentToBakeTable.Add(component, property);
-        }
-
-        if (componentToBakeTable.TryGetValue(component, out property))
-        {
-            SetGuidAndUpdate(component, property.guid);
-            property.PrevProcessing();
-        }
+        BakeGuid.SetGuid(component);
+        var property = global::BakeObject.CreateProperty(component);
+        if (property != null)
+            property.Preprocess();
 
     }
     public static void PrevProcessingMaterial(Material material)
     {
-        TrySetGuid(material);
-    }
-
-    public static void PrevProcessingModel()
-    {
-        BakeFBXModel.modelPathList.Clear();
-        BakeFBXModel.allBoneMappings.Clear();
+        BakeGuid.SetGuid(material);
+        global::BakeObject.CreateProperty(material);
     }
 
     public static void BakeGameObject(JObject prevJson, GameObject gameObject)
     {
-        //prevJson.Add("type", "GameObject");
+        JObject objJson = new JObject();
+        objJson["name"] = gameObject.name;
+        objJson["guid"] = BakeGuid.GetGuid(gameObject);
+        objJson["active"] = gameObject.activeSelf;
+        objJson["static"] = gameObject.isStatic;
+        objJson["deactivate"] = gameObject.layer == LayerMask.NameToLayer("Deactivate");
 
-        if (gameObjectToBakeTable.TryGetValue(gameObject, out var bakingInfo))
+
+        objJson["components"] ??= new JArray();
+        objJson["childs"] ??= new JArray();
+        objJson["parent"] = "";
+
+        //----------------------------------------
+        objJson["parent"] = BakeGuid.GetGuid(gameObject.transform.parent);
+
+        for (int i = 0; i < gameObject.transform.childCount; i++)
         {
-
-            JObject objJson = new JObject();
-            objJson["name"] = bakingInfo.name;
-            objJson["guid"] = bakingInfo.guid;
-            objJson["active"] = gameObject.activeSelf;
-            objJson["static"] = gameObject.isStatic;
-            objJson["deactivate"] = gameObject.layer == LayerMask.NameToLayer("Deactivate");
-
-
-            objJson["components"] ??= new JArray();
-            objJson["childs"] ??= new JArray();
-            objJson["parent"] = "";
-
-            //----------------------------------------
-
-            if (gameObject.transform.parent != null)
-                if (TryGetGuid(gameObject.transform.parent.gameObject, out var parentGuid))
-                    objJson["parent"] = parentGuid;
-
-            for (int i = 0; i < gameObject.transform.childCount; i++)
-            {
-                if (TryGetGuid(gameObject.transform.GetChild(i).gameObject, out var childGuid))
-                    ((JArray)(objJson["childs"])).Add(childGuid);
-            }
-
-            foreach (var component in gameObject.GetComponents<Component>())
-            {
-                if (TryGetGuid(component, out var guid))
-                    ((JArray)(objJson["components"])).Add(guid);
-            }
-
-
-            var typeKey = "GameObjects";
-            var refJson = prevJson["references"];
-            (refJson as JObject)[typeKey] ??= new JArray();
-            ((refJson as JObject)[typeKey] as JArray)?.Add(objJson);
-
+            (objJson["childs"] as JArray).Add(BakeGuid.GetGuid(gameObject.transform.GetChild(i).gameObject));
         }
+
+        foreach (var component in gameObject.GetComponents<Component>())
+        {
+            (objJson["components"] as JArray).Add(BakeGuid.GetGuid(component));
+        }
+
+
+        var typeKey = "GameObjects";
+        var refJson = prevJson["references"];
+        (refJson as JObject)[typeKey] ??= new JArray();
+        ((refJson as JObject)[typeKey] as JArray)?.Add(objJson);
     }
     public static void BakeComponent(JObject prevJson, Component component)
     {
         var refJson = prevJson["references"];
         (refJson as JObject)["Components"] ??= new JArray();
-        if (componentToBakeTable.TryGetValue(component, out var property))
-            ((refJson as JObject)["Components"] as JArray).Add(property.BakeComponent());
+
+        var bakeComponent = BakeObject.GetProperty(component);
+        if (bakeComponent != null)
+            ((refJson as JObject)["Components"] as JArray).Add(bakeComponent.Bake());
     }
     public static void BakeMaterial(JObject prevJson, Material obj)
     {
         var refJson = prevJson["references"];
         (refJson as JObject)["Materials"] ??= new JArray();
-        ((refJson as JObject)["Materials"] as JArray).Add(BakeExtensions.ToJson(obj, false));
+
+        var bake = BakeObject.GetProperty(obj);
+        if (bake != null)
+            ((refJson as JObject)["Materials"] as JArray).Add(bake.Bake());
     }
 
-    public static void BakeObject<T>(JObject prevJson, T t) where T : class
-    {
-        //prevJson.Add("type", "GameObject");
-        //JObject objJson = new JObject();
-        //Debug.Log(prevJson.ToString());
-    }
 
     public static void BakeModel(JObject prevJson, List<GameObject> objectList)
     {
@@ -412,30 +354,19 @@ public class BakeUnity : MonoBehaviour
                     var list = sharedModelsData.models;
                     foreach (var obj in list)
                     {
-                        if (!obj.IsUnityNull() && obj != null)
+                        if (obj != null)
                         {
-                            var path = AssetDatabase.GetAssetPath(obj).Trim();
-                            if (!string.IsNullOrEmpty(path))
-                            {
-                                BakeUnity.filePathSet.Add(path);
-                                path = path.Replace("Assets/", BakeUnity.definePath_Resources);
-
-                                var fileName = path.Split("/").Last();
-                                var name = string.Join(".", fileName.Split(".")[0..^1]);
-                                if (!animationList.Contains(path))
-                                    animationList.Add(path);
-                            }
+                            var path = BakeExtensions.GetPathInfoFromAsset(obj);
+                            BakeUnity.AddResourcePath(path.unityFilePath);
+                            animationList.Add(path.convertFullFilePath);
                         }
                     }
 
                     foreach (var path2 in BakeFBXModel.modelPathList)
                     {
-                        BakeUnity.filePathSet.Add(path2);
-                        var path = path2.Replace("Assets/", BakeUnity.definePath_Resources);
-                        var fileName = path.Split("/").Last();
-                        var name = string.Join(".", fileName.Split(".")[0..^1]);
-                        if (!animationList.Contains(path))
-                            animationList.Add(path);
+                        var path = BakeExtensions.PathConvert(path2);
+                        BakeUnity.AddResourcePath(path.unityFilePath);
+                        animationList.Add(path.convertFullFilePath);
                     }
                 }
             }
@@ -444,27 +375,4 @@ public class BakeUnity : MonoBehaviour
         prevJson.Add("AnimationBoneMappingTable", JObject.FromObject(BakeFBXModel.allBoneMappings));
     }
 
-    public static bool TryGetGuid<T>(T obj, out string guid) where T : class
-    {
-        guid = "null";
-        if (obj != null && objectToGuidTable.TryGetValue(obj, out guid))
-            return true;
-        return false;
-    }
-    public static string TrySetGuid<T>(T obj) where T : class
-    {
-        if (obj == null)
-            return "null";
-        if (!objectToGuidTable.TryGetValue(obj, out var value))
-            return objectToGuidTable[obj] = NewGuid();
-        return value;
-    }
-    public static string SetGuidAndUpdate<T>(T obj, string guid) where T : class
-    {
-        return objectToGuidTable[obj] = guid;
-    }
-    public static string NewGuid()
-    {
-        return System.Guid.NewGuid().ToString();
-    }
 }
