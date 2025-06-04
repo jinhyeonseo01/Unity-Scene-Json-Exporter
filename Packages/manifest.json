@@ -47,7 +47,6 @@
 <<<<<<< Updated upstream
     "com.unity.modules.xr": "1.0.0",
 
-    "com.browar.editor-toolbox": "https://github.com/arimger/Unity-Editor-Toolbox.git#upm",
     "com.unity.formats.fbx": "5.1.1",
     "com.unity.terrain-tools": "5.2.1"
 =======

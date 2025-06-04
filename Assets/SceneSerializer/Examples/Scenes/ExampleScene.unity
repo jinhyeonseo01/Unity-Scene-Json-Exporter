@@ -287,7 +287,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rootResourcesPathStr: Assets/
-  rootConfigResourcesPath: Assets/Test/
+  rootConfigResourcesPath: Assets/
   jsonExportPath: ./Assets/Exports/
   resourceExportPath: ./Assets/Exports/Resources/
 --- !u!4 &992570307
@@ -317,12 +317,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b70d290b8364f0f4ab3ea59237bc2112, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-<<<<<<< Updated upstream:Assets/Examples/Scenes/SampleScene.unity
-  sharedModelsData: {fileID: 11400000, guid: 1e7e2decded877a42aab9e9ae8597445, type: 2}
-=======
-  modelsTableList:
-  - {fileID: 11400000, guid: 1e7e2decded877a42aab9e9ae8597445, type: 2}
->>>>>>> Stashed changes:Assets/SceneSerializer/Examples/Scenes/ExampleScene.unity
+  modelsTableList: []
 --- !u!1 &1108011429
 GameObject:
   m_ObjectHideFlags: 0
@@ -456,7 +451,6 @@ GameObject:
   - component: {fileID: 1243786228}
   - component: {fileID: 1243786227}
   - component: {fileID: 1243786226}
-  - component: {fileID: 1243786230}
   m_Layer: 0
   m_Name: Plane
   m_TagString: Untagged
@@ -554,21 +548,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1243786230
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1243786225}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c4f7aa3361fd5704488073efab74f1ae, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  textureTable:
-  - name: 
-    textures: []
 --- !u!1 &1308511428
 GameObject:
   m_ObjectHideFlags: 0
@@ -583,6 +562,7 @@ GameObject:
   - component: {fileID: 1308511434}
   - component: {fileID: 1308511433}
   - component: {fileID: 1308511429}
+  - component: {fileID: 1308511435}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -707,8 +687,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tagList: 01000000
-<<<<<<< Updated upstream:Assets/Examples/Scenes/SampleScene.unity
-=======
 --- !u!114 &1308511435
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -722,9 +700,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animations:
-  - name: 
-    clip: {fileID: 0}
->>>>>>> Stashed changes:Assets/SceneSerializer/Examples/Scenes/ExampleScene.unity
+    pairs: []
+    error: 0
 --- !u!1 &1642389655
 GameObject:
   m_ObjectHideFlags: 0

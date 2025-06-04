@@ -8,7 +8,7 @@ public static class TerrainAlignerEditor
     // 기능 활성화 여부
     private static bool isActive = false;
     // 드래그 가능한 패널 위치 및 크기
-    private static Rect windowRect = new Rect(10, 10, 250, 60);
+    private static Rect windowRect = new Rect(50, 10, 270, 60);
 
     static TerrainAlignerEditor()
     {
@@ -130,7 +130,7 @@ public static class TerrainAlignerEditor
     // 드래그 가능한 윈도우 내부 내용
     private static void DoWindow(int windowID)
     {
-        GUILayout.Label("선택 오브젝트 정렬: T 키");
+        GUILayout.Label("선택 오브젝트 정렬: U 키");
         isActive = GUILayout.Toggle(isActive, "Enable Terrain Aligner");
         GUI.DragWindow();
     }
