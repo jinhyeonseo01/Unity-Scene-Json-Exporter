@@ -1,15 +1,26 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using NUnit.Framework;
-using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 
 
+[Serializable]
+public class AnimationPair
+{
+    public string name;
+    public AnimationClip clip;
+    public void Deconstruct(out string name, out AnimationClip clip)
+    {
+        name = this.name;
+        clip = this.clip;
+    }
+}
+
 public class AnimationList : MonoBehaviour
 {
-    public SerializedDictionary<string, AnimationClip> animations;
+    public List<AnimationPair> animations;
 
     private string takeName = "";
     private void Start()

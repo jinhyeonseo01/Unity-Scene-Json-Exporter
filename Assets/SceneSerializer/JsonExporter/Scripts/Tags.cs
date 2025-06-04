@@ -14,7 +14,6 @@ public enum MultiTag
 
 public class Tags : MonoBehaviour
 {
-    [ReorderableList]
     public List<MultiTag> tagList;
 
     void Start()

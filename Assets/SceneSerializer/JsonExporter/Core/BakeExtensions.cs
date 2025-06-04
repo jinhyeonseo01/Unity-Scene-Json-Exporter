@@ -3,15 +3,84 @@ using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using UnityEditor;
 using System.Linq;
-using static UnityEngine.Rendering.DebugUI;
 
+
+public struct BakePathInfo
+{
+    public string unityFilePath;
+    public string unityFolderPath;
+    public string convertFullFilePath;
+    public string convertFullFolderPath;
+    
+    public string fileFullName;
+    public string fileName;
+    public string fileExtension;
+}
 public class BakeExtensions
 {
-    public static string PathConvert(string path)
+    public static BakePathInfo GetPathInfoFromAsset<T>(T asset) where T : UnityEngine.Object
     {
-        return path.Replace("Assets/", BakeUnity.definePath_Resources); ;
+        if (asset == null)
+            return new BakePathInfo();
+        var assetPath = AssetDatabase.GetAssetPath(asset).Trim();
+
+        if (string.IsNullOrEmpty(assetPath))
+            return new BakePathInfo();
+        if (assetPath.Contains("unity default resources") || assetPath.Contains("unity_builtin_extra"))
+        {
+            if (asset is Mesh mesh)
+                assetPath = BakeUnity.definePath_ConfigResources + mesh.name + ".fbx";
+            if (asset is Texture2D texture2d)
+                assetPath = BakeUnity.definePath_ConfigResources + texture2d.name + ".png";
+            if (asset is Font font)
+                assetPath = BakeUnity.definePath_ConfigResources + font.name + ".tff";
+        }
+        else
+        {
+            BakeUnity.AddResourcePath(assetPath);
+        }
+
+        BakePathInfo pathInfo = PathConvert(assetPath);
+        return pathInfo;
+        
     }
-    public static JToken ToJson(object obj, bool changeLink = false)
+    public static BakePathInfo PathConvert(string path)
+    {
+        BakePathInfo info;
+
+        info.unityFilePath = path.Trim();
+        info.convertFullFilePath = info.unityFilePath.Replace("Assets/", BakeUnity.definePath_Resources);
+
+        int lastSlash = info.convertFullFilePath.LastIndexOf('/');
+        if (lastSlash >= 0)
+            info.convertFullFolderPath = info.convertFullFilePath[..lastSlash];
+        else
+            info.convertFullFolderPath = info.convertFullFilePath;
+
+        lastSlash = info.unityFilePath.LastIndexOf('/');
+        if (lastSlash >= 0)
+            info.unityFolderPath = info.unityFilePath[..lastSlash];
+        else
+            info.unityFolderPath = info.unityFilePath;
+
+
+        info.fileFullName = info.unityFilePath.Split("/").Last();
+
+        var fileParts = info.fileFullName.Split('.');
+        if (fileParts.Length > 1)
+        {
+            info.fileName = string.Join(".", fileParts[0..^1]);
+            info.fileExtension = fileParts[^1];
+        }
+        else
+        {
+            info.fileName = info.fileFullName;
+            info.fileExtension = "";
+        }
+
+        return info;
+    }
+    public static JToken ToJson(object obj)
     {
         if (obj is Matrix4x4)
         {
@@ -78,201 +147,36 @@ public class BakeExtensions
             array.Add(value.a / (float)255);
             return array;
         }
-
-        if (changeLink)
+        
+        if (obj is Texture2D texture2d)
         {
-            if (BakeUnity.objectToGuidTable.TryGetValue(obj, out string guid))
-                return guid;
-            return "null";
+            JObject data = new JObject();
+            var pathInfo = GetPathInfoFromAsset(texture2d);
+
+            data["path"] = pathInfo.convertFullFilePath;
+            data["fileName"] = pathInfo.fileFullName;
+            data["originalName"] = pathInfo.fileName;
+            return data;
         }
-        else
+
+        if (obj is Mesh)
         {
-            if (obj is Material)
-            {
-                var material = obj as Material;
+            var mesh = obj as Mesh;
+            JObject data = new JObject();
+            var pathInfo = GetPathInfoFromAsset(mesh);
 
-                Dictionary<string, List<string>> propertyNameTable = new Dictionary<string, List<string>>();
-                propertyNameTable.Add("texture",
-                    material.GetPropertyNames(MaterialPropertyType.Texture).ToList());
-                propertyNameTable.Add("float",
-                    material.GetPropertyNames(MaterialPropertyType.Float).ToList());
-                propertyNameTable.Add("vector",
-                    material.GetPropertyNames(MaterialPropertyType.Vector).ToList());
-                propertyNameTable.Add("matrix",
-                    material.GetPropertyNames(MaterialPropertyType.Matrix).ToList());
-                propertyNameTable.Add("int",
-                    material.GetPropertyNames(MaterialPropertyType.Int).ToList());
-
-                JObject materialJson = new JObject();
-                JObject dataJson = new JObject();
-
-                materialJson.Add("name", material.name);
-                if (BakeUnity.TryGetGuid(material, out var guid))
-                    materialJson.Add("guid", guid);
-                materialJson.Add("shaderName", material.shader.name.Split("/")[^1]);
-                materialJson.Add("renderOrder", material.renderQueue);
-                //try
-                //{
-                //    float Data = material.GetFloat("_Cull");
-                //    if(Data == 0)
-                //        materialJson.Add("culling", "both");
-                //    if (Data == 1)
-                //        materialJson.Add("culling", "front");
-                //    if (Data == 2)
-                //        materialJson.Add("culling", "back");
-                //}
-                //catch {
-                //    materialJson.Add("culling", "back");
-                //}
-                materialJson.Add("culling", "back");
-
-                materialJson.Add("datas", dataJson);
-
-
-                JArray textureDatas = new JArray();
-
-                JArray floatDatas = new JArray();
-                JArray intDatas = new JArray();
-                JArray vectorDatas = new JArray();
-                JArray matrixDatas = new JArray();
-
-                dataJson.Add("textures", textureDatas);
-                foreach (var value in propertyNameTable["texture"])
-                {
-                    JObject data = new JObject();
-                    data["name"] = value;
-                    var texture = material.GetTexture(value);
-                    var path = AssetDatabase.GetAssetPath(texture).Trim();
-                    BakeUnity.filePathSet.Add(path);
-
-                    path = path.Replace("Assets/", BakeUnity.definePath_Resources);
-                    var fileName = path.Split("/").Last();
-                    var name = string.Join(".", fileName.Split(".")[0..^1]);
-                    if (path.Contains("unity_builtin_extra"))
-                    {
-                        data["path"] = "none";
-                        data["fileName"] = "none";
-                        data["originalName"] = "none";
-                    }
-                    else
-                    {
-                        data["path"] = path;
-                        data["fileName"] = fileName;
-                        data["originalName"] = name;
-                    }
-                    if (!string.IsNullOrEmpty(path))
-                    {
-                        textureDatas.Add(data);
-
-                        Vector2 offset = material.GetTextureOffset(value);
-                        Vector2 size = material.GetTextureScale(value);
-                        JObject dataST = new JObject();
-                        dataST["name"] = value + $"_ST";
-                        dataST["data"] = ToJson(new Vector4(size.x, size.y, offset.x, offset.y));
-                        vectorDatas.Add(dataST);
-                    }
-                }
-
-                dataJson.Add("floats", floatDatas);
-                foreach (var value in propertyNameTable["float"])
-                {
-                    JObject data = new JObject();
-                    data["name"] = value;
-                    data["data"] = material.GetFloat(value);
-                    floatDatas.Add(data);
-                }
-
-                dataJson.Add("ints", intDatas);
-                foreach (var value in propertyNameTable["int"])
-                {
-                    JObject data = new JObject();
-                    data["name"] = value;
-                    data["data"] = material.GetInt(value);
-                    intDatas.Add(data);
-                }
-
-                dataJson.Add("vectors", vectorDatas);
-                foreach (var value in propertyNameTable["vector"])
-                {
-                    JObject data = new JObject();
-                    data["name"] = value;
-                    data["data"] = ToJson(material.GetVector(value));
-                    vectorDatas.Add(data);
-                }
-                dataJson.Add("matrixs", matrixDatas);
-                foreach (var value in propertyNameTable["matrix"])
-                {
-                    JObject data = new JObject();
-                    data["name"] = value;
-                    data["data"] = ToJson(material.GetMatrix(value));
-                    matrixDatas.Add(data);
-                }
-
-                return materialJson;
-            }
-
-            if (obj is Texture2D)
-            {
-                JObject data = new JObject();
-                var path = AssetDatabase.GetAssetPath((Texture2D)obj).Trim();
-                if (path.Contains("unity_builtin_extra"))
-                {
-                    data["path"] = "none";
-                    data["fileName"] = "none";
-                    data["originalName"] = "none";
-                    return data;
-                }
-                BakeUnity.filePathSet.Add(path);
-
-                path = path.Replace("Assets/", BakeUnity.definePath_Resources);
-                var fileName = path.Split("/").Last();
-                var name = string.Join(".", fileName.Split(".")[0..^1]);
-
-                data["path"] = path;
-                data["fileName"] = fileName;
-                data["originalName"] = name;
-                return data;
-            }
-
-            if (obj is Mesh)
-            {
-                var mesh = obj as Mesh;
-                JObject data = new JObject();
-                var path = AssetDatabase.GetAssetPath(mesh).Trim();
-                if (!string.IsNullOrEmpty(path))
-                {
-                    switch (path)
-                    {
-                        case "Library/unity default resources":
-                            {
-                                if (!BakeUnity.nameToPathTable.ContainsKey(mesh.name))
-                                    BakeUnity.nameToPathTable[mesh.name] = mesh.name + ".fbx";
-
-                                path = BakeUnity.definePath_ConfigResources + BakeUnity.nameToPathTable[mesh.name];
-                                break;
-                            }
-                        default:
-                            {
-                                BakeUnity.filePathSet.Add(path);
-                                path = path.Replace("Assets/", BakeUnity.definePath_Resources);
-                                break;
-                            }
-                    }
-                    var fileName = path.Split("/").Last();
-                    var name = string.Join(".", fileName.Split(".")[0..^1]);
-
-                    data["path"] = path;
-                    data["fileName"] = fileName;
-                    data["modelName"] = name;
-                    data["meshName"] = mesh.name;
-                    data["boundCenter"] = ToJson(mesh.bounds.center);
-                    data["boundExtent"] = ToJson(mesh.bounds.extents);
-                }
-                return data;
-            }
-
+            data["path"] = pathInfo.unityFilePath;
+            data["fileName"] = pathInfo.fileFullName;
+            data["modelName"] = pathInfo.fileName;
+            data["meshName"] = mesh.name;
+            data["boundCenter"] = ToJson(mesh.bounds.center);
+            data["boundExtent"] = ToJson(mesh.bounds.extents);
+                
+            return data;
         }
-        //string jsonString = System.Text.Encoding.UTF8.GetString(SerializationUtility.SerializeValue(obj, DataFormat.JSON));
+
+        if(obj == null)
+            return new JObject();
         return new JObject(obj);
     }
 }

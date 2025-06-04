@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< Updated upstream:Assets/TextMesh Pro/Shaders.meta
 guid: e9f693669af91aa45ad615fc681ed29f
+========
+guid: ec1f517936d65e4459ae11782dd46463
+>>>>>>>> Stashed changes:Assets/SceneSerializer/docs.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

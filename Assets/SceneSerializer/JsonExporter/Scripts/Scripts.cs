@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class Scripts : MonoBehaviour
 {
-    [ReorderableList]
     public List<string> scripts;
     void Start()
     {

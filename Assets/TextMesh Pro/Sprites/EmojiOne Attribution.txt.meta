@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< Updated upstream:Assets/TextMesh Pro/Sprites/EmojiOne Attribution.txt.meta
 guid: 381dcb09d5029d14897e55f98031fca5
+========
+guid: 089139b018d3da54fa6feab61e540b5b
+>>>>>>>> Stashed changes:Assets/SceneSerializer/README.md.meta
 TextScriptImporter:
   externalObjects: {}
   userData: 

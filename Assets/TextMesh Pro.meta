@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< Updated upstream:Assets/TextMesh Pro.meta
 guid: f54d1bd14bd3ca042bd867b519fee8cc
+========
+guid: 7cd52466a2239344d90c3043b7afc1e4
+>>>>>>>> Stashed changes:Packages/com.unity.asset-store-tools/Editor/Validator/Scripts/Test Definitions/Scriptable Objects/Editor.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}
