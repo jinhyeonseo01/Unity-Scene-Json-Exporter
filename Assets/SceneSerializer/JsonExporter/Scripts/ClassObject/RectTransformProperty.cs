@@ -3,12 +3,12 @@ using System;
 using UnityEngine;
 
 [Serializable]
-[BakeTargetType(typeof(RectTransform))]
+[BakeTarget(typeof(RectTransform))]
 public class RectTransformProperty : BakeObject
 {
-    public override JObject Bake()
+    public override JObject Bake(JObject totalJson)
     {
-        JObject json = base.Bake();
+        JObject json = base.Bake(totalJson);
         var trans = (RectTransform)target;
 
 

@@ -3,14 +3,13 @@ using System;
 using UnityEngine;
 
 [Serializable]
-[BakeTarget(typeof(MeshFilter))]
-public class MeshFilterProperty : BakeObject
+[BakeTarget(typeof(Rigidbody))]
+public class RigidbodyProperty : BakeObject
 {
+
     public override JObject Bake(JObject totalJson)
     {
         JObject json = base.Bake(totalJson);
-        var obj = (MeshFilter)target;
-        json.Add("mesh", BakeExtensions.ToJson(obj.sharedMesh));
 
         return json;
     }

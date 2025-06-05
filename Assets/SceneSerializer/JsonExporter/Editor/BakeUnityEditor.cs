@@ -1,80 +1,156 @@
-#if UNITY_EDITOR
+ï»¿#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Overlays;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 /// <summary>
-/// SceneView »ó´Ü ¡°Overlays¡± ¸Ş´º¿¡ ¡°Json Baking Tool¡±ÀÌ¶ó´Â Ã¼Å©¹Ú½º¸¦ Ãß°¡ÇÏ°í,
-/// Ã¼Å©ÇØµÎ¸é ¾À ºä ¾È¿¡ °íÁ¤µÈ IMGUI Åø Ã¢À» º¸¿©Áİ´Ï´Ù.
+/// Displays a â€œJson Baking Toolâ€ panel under Scene Viewâ€™s Overlays, built entirely with UI Toolkit.
+/// When collapsed, the overlay will shrink to just the foldout header height.
 /// </summary>
-[Overlay(typeof(SceneView), "Json Baking Tool", defaultDisplay = true)]
-public class BakeUnityIMGUIOverlay : IMGUIOverlay
+[Overlay(typeof(SceneView), "Json Export Tool", defaultDisplay = true)]
+public class BakeUnityOverlay : Overlay
 {
-    // ÅøÃ¢ÀÇ ³Êºñ/³ôÀÌ (¿øÇÏ´Â Å©±â·Î Á¶Á¤ °¡´É)
-    private const float kWindowWidth = 270f;
-    private const float kWindowHeight = 220f;
+    private const string k_FoldoutKey = "BakeUnityOverlay_Foldout";
 
-    // ³»ºÎ ½½¶óÀÌ´õ³ª ½ºÅ©·ÑÀÌ ÇÊ¿ä¾øÀ¸¸é º°µµ »óÅÂ °ü¸® ºÒÇÊ¿ä
-    // (¿©±â¼­´Â ½ºÅ©·Ñ ¾øÀÌ °íÁ¤ ·¹ÀÌ¾Æ¿ôÀ¸·Î ±¸Çö)
-
-    public override void OnGUI()
+    public override VisualElement CreatePanelContent()
     {
-        // 1) Ã¢À» ±×¸± °íÁ¤µÈ ¹Ú½º (¸ğ¼­¸®/¹è°æ µî ½ºÅ¸ÀÏÀ» box·Î Àâ¾ÆµÒ)
-        //    GUILayout.BeginArea¸¦ ¾²´Â ´ë½Å, ´Ü¼øÈ÷ GUILayout.Window¿Í ºñ½ÁÇÏ°Ô BeginVertical·Î Ã³¸®
-        GUILayout.BeginVertical("box", GUILayout.Width(kWindowWidth), GUILayout.Height(kWindowHeight));
+        // Load foldout state (default to true)
+        bool isExpanded = EditorPrefs.GetBool(k_FoldoutKey, true);
+
+        // Root container: do NOT give it a fixed minHeight! Just a minWidth for readability.
+        var root = new VisualElement
         {
-            GUILayout.Space(5);
-
-            // 2) ¼³¸í ¶óº§
-            GUILayout.Label(
-                "Á¢µÎ # : ÇØ´ç °´Ã¼ Á¦¿Ü\n" +
-                "Á¢µÎ ## : ÇØ´ç °´Ã¼¸¦ Æ÷ÇÔÇÑ °èÃş ÀüÃ¼ Á¦¿Ü\n" +
-                "static ¼³Á¤(¿ìÃø »ó´Ü) : static¸ğµå\n" +
-                "layer ¼³Á¤(¿ìÃø »ó´Ü) : Deactivate¸ğµå",
-                EditorStyles.wordWrappedLabel
-            );
-            GUILayout.Space(10);
-
-            // 3) ¹öÆ°: Scene Baking
-            if (GUILayout.Button("Scene Baking", GUILayout.Height(25)))
+            style =
             {
-                BakeUnity.SceneBake();
+                minWidth = 200,
+                flexDirection = FlexDirection.Column,
+                paddingTop = 4,
+                paddingBottom = 4,
+                paddingLeft = 6,
+                paddingRight = 6,
+                backgroundColor = new Color(0.18f, 0.18f, 0.18f, 0.9f),
+                borderTopWidth = 1,
+                borderBottomWidth = 1,
+                borderLeftWidth = 1,
+                borderRightWidth = 1,
+                borderTopColor = Color.gray,
+                borderBottomColor = Color.gray,
+                borderLeftColor = Color.gray,
+                borderRightColor = Color.gray
             }
-            GUILayout.Space(5);
+        };
 
-            // 4) ¹öÆ°: Selected Baking
-            if (GUILayout.Button("Selected Baking", GUILayout.Height(25)))
+        // 1) Foldout header
+        var foldout = new Foldout
+        {
+            text = "Json Export Tool",
+            value = isExpanded,
+            style =
             {
-                BakeUnity.SelectBake();
+                unityFontStyleAndWeight = FontStyle.Bold,
+                fontSize = 14,
+                marginBottom = 4
             }
-            GUILayout.Space(10);
+        };
+        root.Add(foldout);
 
-            // 5) ¸¶Áö¸· º¹»ç ¹öÆ°
-            GUILayout.BeginHorizontal();
+        // 2) Container for all â€œbodyâ€ controls â€“ this is hidden when collapsed
+        var content = new VisualElement
+        {
+            style =
             {
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button("Resource Copy", GUILayout.Width(110), GUILayout.Height(25)))
-                {
-                    BakeUnity.CopyResources();
-                }
-                GUILayout.Space(5);
+                flexDirection = FlexDirection.Column,
+                marginLeft = 4,
+                marginBottom = 4,
+                display = isExpanded ? DisplayStyle.Flex : DisplayStyle.None
             }
-            GUILayout.EndHorizontal();
+        };
+        root.Add(content);
 
-            GUILayout.Space(5);
-            GUILayout.Label("(ÁÖÀÇ : ¸¶Áö¸· Baking Path·Î º¹»ç)", EditorStyles.miniLabel);
+        // 2a) Instruction label
+        var instruction = new Label(
+            "Prefix # : exclude this GameObject\n" +
+            "Prefix ## : exclude this GameObject\n\t\tand entire hierarchy\n"
+        )
+        {
+            style =
+            {
+                unityTextAlign = TextAnchor.MiddleLeft,
+                marginBottom = 8,
+                whiteSpace = WhiteSpace.Normal
+            }
+        };
+        content.Add(instruction);
 
-            GUILayout.FlexibleSpace();
-        }
-        GUILayout.EndVertical();
+        // 2b) â€œScene Bakingâ€ button
+        var sceneBakeBtn = new Button(() => BakeUnity.SceneExport())
+        {
+            text = "Scene Export",
+            style =
+            {
+                height = 25,
+                marginBottom = 4
+            }
+        };
+        content.Add(sceneBakeBtn);
+
+        // 2c) â€œSelected Bakingâ€ button
+        var selectedBakeBtn = new Button(() => BakeUnity.SelectExport())
+        {
+            text = "Selected Export",
+            style =
+            {
+                height = 25,
+                marginBottom = 8
+            }
+        };
+        content.Add(selectedBakeBtn);
+
+        // 2d) â€œResource Copyâ€ button aligned to the right
+        var copyContainer = new VisualElement
+        {
+            style =
+            {
+                flexDirection = FlexDirection.Row,
+                justifyContent = Justify.FlexEnd,
+                marginBottom = 4
+            }
+        };
+        var copyBtn = new Button(() => BakeUnity.CopyResources())
+        {
+            text = "Resource Copy",
+            style =
+            {
+                width = 110,
+                height = 25
+            }
+        };
+        copyContainer.Add(copyBtn);
+        content.Add(copyContainer);
+
+        // 2e) Warning label
+        var warning = new Label("(Warning: copies to last exported resources)")
+        {
+            style =
+            {
+                unityFontStyleAndWeight = FontStyle.Italic,
+                fontSize = 10,
+                color = new Color(0.8f, 0.8f, 0.8f, 1f),
+                marginLeft = 4
+            }
+        };
+        content.Add(warning);
+
+        // 3) Register the foldout callback: show/hide â€œcontentâ€ and save state to EditorPrefs
+        foldout.RegisterValueChangedCallback(evt =>
+        {
+            bool expanded = evt.newValue;
+            EditorPrefs.SetBool(k_FoldoutKey, expanded);
+            content.style.display = expanded ? DisplayStyle.Flex : DisplayStyle.None;
+        });
+
+        return root;
     }
-
-    // (¼±ÅÃ) ¸¸¾à Overlay Ã¢ÀÇ Å©±â/À§Ä¡¸¦ °­Á¦·Î ¼³Á¤ÇÏ°í ½ÍÀ¸¸é,
-    // IMGUIOverlay¿¡´Â override °¡´ÉÇÑ ¼Ó¼ºÀÌ ¾Æ·¡Ã³·³ ÀÖ½À´Ï´Ù.
-    //
-    // public override Vector2 GetOverlaySize() => new Vector2(kWindowWidth, kWindowHeight);
-    //
-    // ±âº»ÀûÀ¸·Î Overlay API°¡ ¡°ÃÖ¼Ò Å©±â¡±¸¦ ÀÌ °ªÀ¸·Î Àâ¾ÆÁÖ¸ç,
-    // ¡°²ô°í ÄÑ±â¡± ½Ã µ¿ÀÏÇÑ À§Ä¡/·¹ÀÌ¾Æ¿ôÀ» À¯ÁöÇÕ´Ï´Ù.
 }
 #endif

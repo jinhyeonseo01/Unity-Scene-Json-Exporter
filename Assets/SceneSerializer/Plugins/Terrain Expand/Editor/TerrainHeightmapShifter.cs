@@ -8,7 +8,7 @@ public class TerrainHeightmapShifterWithGlobalIndex : EditorWindow
     int offsetX = 0;
     int offsetY = 0;
 
-    [MenuItem("Tools/Shift Terrain Heightmap With Neighbors (Global Index)")]
+    [MenuItem("Tools/Json Exporter/Terrain Expansions/Shift Terrain Heightmap With Neighbors (Global Index)")]
     public static void ShowWindow()
     {
         GetWindow<TerrainHeightmapShifterWithGlobalIndex>("Shift Terrain Heightmap (Global Index)");

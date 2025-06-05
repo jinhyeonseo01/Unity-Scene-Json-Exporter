@@ -6,7 +6,7 @@ public class RaiseTerrainEditor : EditorWindow
     // 높이 증가값 (기본값 0.01)
     private float raiseAmount = 0.01f;
 
-    [MenuItem("Tools/Raise Terrain")]
+    [MenuItem("Tools/Json Exporter/Terrain Expansions/Raise Terrain")]
     public static void ShowWindow()
     {
         GetWindow<RaiseTerrainEditor>("Raise Terrain");

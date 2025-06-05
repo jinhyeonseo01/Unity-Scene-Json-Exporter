@@ -6,7 +6,7 @@ using UnityEngine;
 
 
 [Serializable]
-[BakeTargetType(typeof(MeshRenderer))]
+[BakeTarget(typeof(MeshRenderer))]
 public class MeshRendererProperty : BakeObject
 {
     public override void Preprocess()
@@ -15,13 +15,12 @@ public class MeshRendererProperty : BakeObject
         var obj = (MeshRenderer)target;
         var materialList = obj.sharedMaterials.ToList();
         foreach (var material in materialList)
-            if (!BakeUnity.refList_Material.Contains(material))
-                BakeUnity.refList_Material.Add(material);
+            BakeUnity.AddPreprocess(material);
     }
 
-    public override JObject Bake()
+    public override JObject Bake(JObject totalJson)
     {
-        JObject json = base.Bake();
+        JObject json = base.Bake(totalJson);
 
         var obj = (MeshRenderer)target;
         var materialList = obj.sharedMaterials.ToList();

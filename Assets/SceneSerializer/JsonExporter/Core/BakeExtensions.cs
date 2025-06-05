@@ -52,9 +52,9 @@ public class BakeExtensions
 
         info.unityFilePath = path.Trim();
         if(configFile)
-            info.convertFullFilePath = info.unityFilePath.Replace("Assets/", BakeUnity.definePath_ConfigResources);
+            info.convertFullFilePath = info.unityFilePath.Replace("Assets/", BakeUnity.DefinePathConfigResources);
         else
-            info.convertFullFilePath = info.unityFilePath.Replace("Assets/", BakeUnity.definePath_Resources);
+            info.convertFullFilePath = info.unityFilePath.Replace("Assets/", BakeUnity.DefinePathResources);
 
         int lastSlash = info.convertFullFilePath.LastIndexOf('/');
         if (lastSlash >= 0)

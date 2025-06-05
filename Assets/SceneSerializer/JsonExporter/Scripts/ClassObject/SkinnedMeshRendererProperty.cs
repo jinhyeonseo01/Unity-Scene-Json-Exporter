@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 
 [Serializable]
-[BakeTargetType(typeof(SkinnedMeshRenderer))]
+[BakeTarget(typeof(SkinnedMeshRenderer))]
 public class SkinnedMeshRendererProperty : BakeObject
 {
     public override void Preprocess()
@@ -14,14 +14,13 @@ public class SkinnedMeshRendererProperty : BakeObject
         var obj = (SkinnedMeshRenderer)target;
         var materialList = obj.sharedMaterials.ToList();
         foreach (var material in materialList)
-            if (!BakeUnity.refList_Material.Contains(material))
-                BakeUnity.refList_Material.Add(material);
+            BakeUnity.AddPreprocess(material);
     }
 
 
-    public override JObject Bake()
+    public override JObject Bake(JObject totalJson)
     {
-        JObject json = base.Bake();
+        JObject json = base.Bake(totalJson);
 
 
         var obj = (SkinnedMeshRenderer)target;

@@ -10,8 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: aeb576cedbee87a41ac35d6131b9a704, type: 3}
-  m_Name: TestModelTable
+  m_Name: TestModelTable 1
   m_EditorClassIdentifier: 
   models:
-  - {fileID: 919132149155446097, guid: 5954176e398c3904b867625015693db3, type: 3}
-  - {fileID: 919132149155446097, guid: 532dca20c9ce3db4bb075980712e1353, type: 3}
+  - {fileID: 919132149155446097, guid: e9be71c8c54849648a10f363aa5a182c, type: 3}

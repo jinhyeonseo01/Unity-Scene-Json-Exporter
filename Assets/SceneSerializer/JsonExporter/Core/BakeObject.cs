@@ -8,19 +8,21 @@ using System.Collections.Generic;
 using UnityEngine.AI;
 using Unity.AI.Navigation;
 using System.Reflection;
+using System.ComponentModel;
 
 
 [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-public class BakeTargetTypeAttribute : Attribute
+public class BakeTargetAttribute : Attribute
 {
     /// 이 프로퍼티 클래스가 타겟으로 삼을 Unity 컴포넌트 타입
     /// </summary>
     public Type TargetType { get; }
 
-    public BakeTargetTypeAttribute(Type type) { TargetType = type; }
+    public BakeTargetAttribute(Type type) { TargetType = type; }
 }
 public interface IBakeProcess
 {
+    public object target { get; set; }
     /// <summary>
     /// Performs necessary preprocessing tasks before baking.
     /// </summary>
@@ -28,25 +30,26 @@ public interface IBakeProcess
     /// <summary>
     /// Executes the bake operation and returns the result in JSON format.
     /// </summary>
-    public JObject Bake();
+    public JObject Bake(JObject totalJson);
 }
 
 [Serializable]
 public class BakeObject : IBakeProcess
 {
-    private static Dictionary<string, BakeObject> bakeClassObjectNameTable;
-    private static Dictionary<string, BakeObject> bakeClassObjectGuidTable;
+    private static Dictionary<string, BakeObject> bakeObjectNameTable;
+    private static Dictionary<string, BakeObject> bakeObjectGuidTable;
 
     private string typeName;
     protected string guid;
-    protected object target;
+
+    public object target { get; set; }
 
     public virtual void Preprocess()
     {
-
+        BakeGuid.SetGuid(target);
     }
 
-    public virtual JObject Bake()
+    public virtual JObject Bake(JObject totalJson)
     {
         JObject json = new JObject();
         json["type"] = typeName;
@@ -62,8 +65,8 @@ public class BakeObject : IBakeProcess
 
     public static void Init()
     {
-        bakeClassObjectNameTable = new Dictionary<string, BakeObject>(128);
-        bakeClassObjectGuidTable = new Dictionary<string, BakeObject>(2048);
+        bakeObjectNameTable = new Dictionary<string, BakeObject>(128);
+        bakeObjectGuidTable = new Dictionary<string, BakeObject>(2048);
 
         Type baseType = typeof(BakeObject);
         Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
@@ -85,7 +88,7 @@ public class BakeObject : IBakeProcess
             {
                 if (t.IsClass && !t.IsAbstract && baseType.IsAssignableFrom(t) && t != baseType)
                 {
-                    var attrib = t.GetCustomAttribute<BakeTargetTypeAttribute>();
+                    var attrib = t.GetCustomAttribute<BakeTargetAttribute>();
                     if (attrib != null)
                         derivedTypes.Add(t);
                 }
@@ -94,30 +97,32 @@ public class BakeObject : IBakeProcess
 
         foreach (var bakeClassObjectType in derivedTypes)
         {
-            var attrib = (bakeClassObjectType.GetCustomAttribute<BakeTargetTypeAttribute>() as BakeTargetTypeAttribute);
-            bakeClassObjectNameTable.Add(attrib.TargetType.Name, Activator.CreateInstance(bakeClassObjectType) as BakeObject);
+            var attrib = (bakeClassObjectType.GetCustomAttribute<BakeTargetAttribute>() as BakeTargetAttribute);
+            bakeObjectNameTable.Add(attrib.TargetType.Name, Activator.CreateInstance(bakeClassObjectType) as BakeObject);
         }
     }
     public static BakeObject CreateProperty<T>(T element) where T : class
     {
         string typeName = element.GetType().Name;
         string guid = BakeGuid.GetGuid(element);
-        if (bakeClassObjectNameTable.TryGetValue(typeName, out var value) && (!bakeClassObjectGuidTable.ContainsKey(guid)))
+        if (bakeObjectNameTable.TryGetValue(typeName, out var value))
         {
-            var bakeData = value.MemberwiseClone() as BakeObject;
-            bakeData.target = element;
-            bakeData.typeName = typeName;
-            bakeData.guid = guid;
-            bakeClassObjectGuidTable.Add(BakeGuid.GetGuid(element), bakeData);
-            return bakeData;
+            if ((!bakeObjectGuidTable.ContainsKey(guid)))
+            {
+                var bakeData = value.MemberwiseClone() as BakeObject;
+                bakeData.SetTarget(element);
+                bakeObjectGuidTable.Add(guid, bakeData);
+                return bakeData;
+            }
+            return bakeObjectGuidTable[guid];
         }
         return null;
     }
 
     public static BakeObject GetProperty<T>(T element) where T : class
     {
-        if (bakeClassObjectGuidTable.ContainsKey(BakeGuid.GetGuid(element)))
-            return bakeClassObjectGuidTable[BakeGuid.GetGuid(element)];
+        if (bakeObjectGuidTable.ContainsKey(BakeGuid.GetGuid(element)))
+            return bakeObjectGuidTable[BakeGuid.GetGuid(element)];
         else
             return CreateProperty(element);
         return null;

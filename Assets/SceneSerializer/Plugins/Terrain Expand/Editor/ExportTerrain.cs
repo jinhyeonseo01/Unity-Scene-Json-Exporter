@@ -24,7 +24,7 @@ class ExportTerrain : EditorWindow
    int totalCount;
    int progressUpdateInterval = 10000;
  
-   [MenuItem("Tools/FBX Exporter/Terrain Export To .obj")]
+   [MenuItem("Tools/Json Exporter/Terrain Expansions/Terrain Export To .obj")]
    static void Init()
    {
       terrain = null;

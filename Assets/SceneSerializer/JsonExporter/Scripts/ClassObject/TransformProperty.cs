@@ -3,12 +3,12 @@ using System;
 using UnityEngine;
 
 [Serializable]
-[BakeTargetType(typeof(Transform))]
+[BakeTarget(typeof(Transform))]
 public class TransformProperty : BakeObject
 {
-    public override JObject Bake()
+    public override JObject Bake(JObject totalJson)
     {
-        JObject json = base.Bake();
+        JObject json = base.Bake(totalJson);
         var trans = (Transform)target;
 
         json["position"] = BakeExtensions.ToJson(trans.localPosition);
