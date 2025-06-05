@@ -23,7 +23,7 @@ public class TerrainProperty : BakeObject
             .SelectMany(e => e.prefab.GetComponentsInChildren<Transform>(true)
                 .Select(t => t.gameObject))
             .ToList())
-        .ForEach(e => BakeUnity.AddPreprocess(e));
+        .ForEach(e => BakeUnity.EnqueuePreprocess(e));
     }
     public override JObject Bake(JObject totalJson)
     {

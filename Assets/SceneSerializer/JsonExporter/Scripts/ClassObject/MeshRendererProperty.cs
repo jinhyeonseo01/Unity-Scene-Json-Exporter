@@ -15,7 +15,7 @@ public class MeshRendererProperty : BakeObject
         var obj = (MeshRenderer)target;
         var materialList = obj.sharedMaterials.ToList();
         foreach (var material in materialList)
-            BakeUnity.AddPreprocess(material);
+            BakeUnity.EnqueuePreprocess(material);
     }
 
     public override JObject Bake(JObject totalJson)

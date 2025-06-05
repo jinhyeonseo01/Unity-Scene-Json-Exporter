@@ -15,11 +15,11 @@ public class GameObjectProperty : BakeObject
         base.Preprocess();
         var obj = target as GameObject;
 
-        BakeUnity.AddPreprocess(obj);
+        BakeUnity.EnqueuePreprocess(obj);
         foreach (var component in obj.GetComponents<Component>().Where(e => e != null).ToList())
-            BakeUnity.AddPreprocess(component);
+            BakeUnity.EnqueuePreprocess(component);
 
-        BakeUnity.GameObjectFilter(obj.GetComponents<Transform>().Select(e => e.gameObject).ToList()).ForEach(e => BakeUnity.AddPreprocess(e));
+        BakeUnity.GameObjectFilter(obj.GetComponents<Transform>().Select(e => e.gameObject).ToList()).ForEach(e => BakeUnity.EnqueuePreprocess(e));
     }
 
     public override JObject Bake(JObject totalJson)

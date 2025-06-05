@@ -14,7 +14,7 @@ public class SkinnedMeshRendererProperty : BakeObject
         var obj = (SkinnedMeshRenderer)target;
         var materialList = obj.sharedMaterials.ToList();
         foreach (var material in materialList)
-            BakeUnity.AddPreprocess(material);
+            BakeUnity.EnqueuePreprocess(material);
     }
 
 
